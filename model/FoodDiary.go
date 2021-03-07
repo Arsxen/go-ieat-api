@@ -19,7 +19,7 @@ type FoodDiary struct {
 var db *gorm.DB
 
 func init() {
-	d, err := gorm.Open(sqlite.Open("IEat.db"), &gorm.Config{})
+	d, err := gorm.Open(sqlite.Open("Ieat.db"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
