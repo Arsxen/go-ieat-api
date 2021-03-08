@@ -4,6 +4,5 @@ go 1.16
 
 require (
 	github.com/go-chi/chi/v5 v5.0.0
-	gorm.io/driver/sqlite v1.1.4
-	gorm.io/gorm v1.21.2
+	github.com/prisma/prisma-client-go v0.5.0
 )
