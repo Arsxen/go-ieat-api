@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,7 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-ieat-api/model"
 	"github.com/go-ieat-api/prisma/db"
@@ -108,17 +108,17 @@ func createFoodDiary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(fd)
+	_ = json.NewEncoder(w).Encode(fd)
 }
 
-func getAllFoodDiary(w http.ResponseWriter, r *http.Request) {
+func getAllFoodDiary(w http.ResponseWriter, _ *http.Request) {
 	fd, err := model.GetAllFoodDiaries()
 	if err != nil {
 		panic(err)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(fd)
+	_ = json.NewEncoder(w).Encode(fd)
 }
 
 func foodDiaryCtx(next http.Handler) http.Handler {
@@ -156,7 +156,7 @@ func getFoodDiary(w http.ResponseWriter, r *http.Request) {
 	fd := r.Context().Value(foodDiaryKey).(*model.FoodDiary)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(fd)
+	_ = json.NewEncoder(w).Encode(fd)
 }
 
 type jsonError struct {
@@ -167,5 +167,5 @@ type jsonError struct {
 func errorJSON(w http.ResponseWriter, code int, msg string) {
 	err := jsonError{Code: code, Message: msg}
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(err)
+	_ = json.NewEncoder(w).Encode(err)
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-ieat-api/prisma/db"
+	"github.com/joho/godotenv"
 )
 
 // FoodDiary is ...
@@ -21,6 +22,10 @@ var client *db.PrismaClient
 var ctx context.Context
 
 func init() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 	client = db.NewClient()
 	if err := client.Prisma.Connect(); err != nil {
 		panic(err)
