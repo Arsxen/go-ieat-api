@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-ieat-api/model"
 	"github.com/go-ieat-api/prisma/db"
@@ -33,6 +33,7 @@ const (
 )
 
 func main() {
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)

@@ -11,7 +11,7 @@ import (
 
 // FoodDiary is ...
 type FoodDiary struct {
-	ID       uint      `json:"id"`
+	ID       int       `json:"id"`
 	FoodName string    `json:"foodName"`
 	Calories float64   `json:"calories"`
 	Date     time.Time `json:"date"`
@@ -22,10 +22,10 @@ var client *db.PrismaClient
 var ctx context.Context
 
 func init() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		panic(err)
 	}
+
 	client = db.NewClient()
 	if err := client.Prisma.Connect(); err != nil {
 		panic(err)
@@ -72,7 +72,7 @@ func CreateFoodDiary(fd *FoodDiary) error {
 		return err
 	}
 
-	fd.ID = uint(created.ID)
+	fd.ID = created.ID
 
 	return nil
 }
@@ -101,7 +101,7 @@ func modelsToFoodDiaries(models []db.FoodDiaryModel) []FoodDiary {
 }
 
 func (fd *FoodDiary) fromFoodDiaryModel(model *db.FoodDiaryModel) {
-	fd.ID = uint(model.ID)
+	fd.ID = model.ID
 	fd.FoodName = model.FoodName
 	fd.Calories = model.Calories
 	fd.Date = model.Date
