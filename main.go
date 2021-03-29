@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-ieat-api/login"
 	"github.com/go-ieat-api/prisma"
 	"github.com/go-ieat-api/render"
 	"github.com/go-ieat-api/user"
@@ -40,6 +41,7 @@ func main() {
 	r.Use(middleware.SetHeader("Content-Type", "application/json; charset=utf-8"))
 
 	r.Mount("/user", user.Router())
+	r.Mount("/login", login.Router())
 
 	server := &http.Server{
 		Handler: r,
