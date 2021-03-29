@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-ieat-api/model"
+	"github.com/go-ieat-api/prisma"
 	"github.com/go-ieat-api/prisma/db"
 )
 
@@ -46,6 +47,8 @@ func main() {
 		r.With(foodDiaryCtx).Get("/{foodDiaryID}", getFoodDiary)
 	})
 
+	r.Post("/regis", registerUser)
+
 	server := &http.Server{
 		Handler: r,
 		Addr:    ":8000",
@@ -69,7 +72,7 @@ func main() {
 		panic(err)
 	}
 
-	model.DisconnectPrisma()
+	prisma.DisconnectDb()
 }
 
 func recoverWithJSON(next http.Handler) http.Handler {
@@ -169,4 +172,8 @@ func errorJSON(w http.ResponseWriter, code int, msg string) {
 	err := jsonError{Code: code, Message: msg}
 	w.WriteHeader(code)
 	_ = json.NewEncoder(w).Encode(err)
+}
+
+func registerUser(rw http.ResponseWriter, r *http.Request) {
+
 }

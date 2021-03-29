@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model FoodDiary {
+model Food {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -15,11 +15,14 @@ model FoodDiary {
   calories  Float
   date      DateTime
   note      String?
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
 }
 
 model User {
-  id             Int     @id
+  id             Int     @id @default(autoincrement())
   email          String  @unique
   name           String
-  hashedpassword String? @db.VarChar(60)
+  hashedpassword String  @db.VarChar(60)
+  foods          Food[]
 }
