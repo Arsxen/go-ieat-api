@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/badoux/checkmail"
@@ -11,15 +12,15 @@ import (
 )
 
 type UserRegistrationRequest struct {
-	Id       int
-	Email    string
-	Name     string
-	Password string
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
-func Router() {
+func Router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Post("/regis", registerUser)
+	return r
 }
 
 func registerUser(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,8 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := checkmail.ValidateFormat(userReq.Email); err != nil {
-		render.ErrorJSON(w, http.StatusUnprocessableEntity, "Invalid email address")
+		render.ErrorJSON(w, http.StatusBadRequest, "Invalid email address")
+		return
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(userReq.Password), bcrypt.DefaultCost)
@@ -40,10 +42,18 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 
 	user := User{Email: userReq.Email, Name: userReq.Name}
 
-	if err := createUser(&user, string(hashed)); err != nil {
+	err = createUser(&user, string(hashed))
+
+	if err != nil {
+		if errors.Is(err, ErrEmailExists) {
+			render.ErrorJSON(w, http.StatusBadRequest, "Email already exists")
+			return
+		}
+
 		panic(err)
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		panic(err)
 	}

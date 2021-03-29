@@ -2,21 +2,19 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"runtime/debug"
-	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-ieat-api/model"
 	"github.com/go-ieat-api/prisma"
-	"github.com/go-ieat-api/prisma/db"
+	"github.com/go-ieat-api/render"
+	"github.com/go-ieat-api/user"
 )
 
 // FoodDiaryRequest is ...
@@ -41,13 +39,7 @@ func main() {
 	r.Use(recoverWithJSON)
 	r.Use(middleware.SetHeader("Content-Type", "application/json; charset=utf-8"))
 
-	r.Route("/food", func(r chi.Router) {
-		r.Post("/", createFoodDiary)
-		r.Get("/", getAllFoodDiary)
-		r.With(foodDiaryCtx).Get("/{foodDiaryID}", getFoodDiary)
-	})
-
-	r.Post("/regis", registerUser)
+	r.Mount("/user", user.Router())
 
 	server := &http.Server{
 		Handler: r,
@@ -87,7 +79,7 @@ func recoverWithJSON(next http.Handler) http.Handler {
 					middleware.PrintPrettyStack(rvr)
 				}
 
-				errorJSON(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+				render.ErrorJSON(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 			}
 		}()
 
@@ -95,85 +87,4 @@ func recoverWithJSON(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func createFoodDiary(w http.ResponseWriter, r *http.Request) {
-	data := &FoodDiaryRequest{}
-
-	if err := json.NewDecoder(r.Body).Decode(data); err != nil {
-		errorJSON(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-		return
-	}
-
-	fd := model.FoodDiary{FoodName: data.FoodName, Calories: data.FoodCalories, Date: data.Date, Note: data.Note}
-
-	if err := model.CreateFoodDiary(&fd); err != nil {
-		panic(err)
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(fd)
-}
-
-func getAllFoodDiary(w http.ResponseWriter, _ *http.Request) {
-	fd, err := model.GetAllFoodDiaries()
-	if err != nil {
-		panic(err)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(fd)
-}
-
-func foodDiaryCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
-		diaryID := chi.URLParam(r, "foodDiaryID")
-
-		if diaryID == "" {
-			errorJSON(rw, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
-			return
-		}
-
-		id, err := strconv.Atoi(diaryID)
-
-		if err != nil {
-			errorJSON(rw, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-			return
-		}
-
-		var fd *model.FoodDiary
-
-		fd, err = model.GetFoodDiaryByID(id)
-
-		if err == db.ErrNotFound {
-			errorJSON(rw, http.StatusNotFound, http.StatusText(http.StatusNotFound))
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), foodDiaryKey, fd)
-		next.ServeHTTP(rw, r.WithContext(ctx))
-	})
-}
-
-func getFoodDiary(w http.ResponseWriter, r *http.Request) {
-	fd := r.Context().Value(foodDiaryKey).(*model.FoodDiary)
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(fd)
-}
-
-type jsonError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-func errorJSON(w http.ResponseWriter, code int, msg string) {
-	err := jsonError{Code: code, Message: msg}
-	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(err)
-}
-
-func registerUser(rw http.ResponseWriter, r *http.Request) {
-
 }

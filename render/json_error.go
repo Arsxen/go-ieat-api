@@ -13,5 +13,7 @@ type jsonError struct {
 func ErrorJSON(w http.ResponseWriter, code int, msg string) {
 	err := jsonError{Code: code, Message: msg}
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(err)
+	if err := json.NewEncoder(w).Encode(err); err != nil {
+		panic(err)
+	}
 }
